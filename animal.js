@@ -89,6 +89,12 @@ class playermanager{
 class chatManager{
 	constructor(){
 		this.chat = [];
+		this.chatbar =
+			'<div id="overlaychat" style="position: absolute; bottom: 20px; left: 20px">'+
+			'<div id="chatbarcontainer" class ="info">'+
+			'<input type="text" name="chatbar" id="chatbar" style="width: 400px">'+
+			'</div></div>';
+		this.chatbarvis = false;
 	}
 	addChat(msg){
 		this.chat.push(msg);
@@ -104,6 +110,36 @@ class chatManager{
 			output += "<br>";
 		}
 		$('#loading').html(output);
+	}
+	createChatbar(){
+		$('body').append($(this.chatbar));
+		$('#overlaychat').hide();
+		$('#chatbar').bind('keyup', function(e) {
+    		if ( e.keyCode === 13 ) {
+        		chatsystem.enterchat();
+    		}
+		});
+	}
+	toggleChatbar(toggle){
+		if(toggle && !this.chatbarvis){
+			$('#overlaychat').show();
+			camcontrols.togglecontrols(false);
+			$('#chatbar').focus();
+			this.chatbarvis = true;
+		} else {
+			$('#overlaychat').hide();
+			camcontrols.togglecontrols(true);
+			this.chatbarvis = false;
+		}
+	}
+	enterchat(){
+		if(this.chatbarvis){
+			var enteredchat = $('#chatbar').val();
+			this.addChat(p1.id+": "+ enteredchat);
+			socket.emit('chat',{chat: p1.id+": "+ enteredchat});
+			$('#chatbar').val("");
+			this.toggleChatbar(false);
+		}
 	}
 }
 
@@ -207,7 +243,7 @@ var manager = new playermanager();
 var actions = new actionManager();
 
 var chatsystem = new chatManager();
-
+chatsystem.createChatbar();
 chatsystem.addChat("Connecting to server");
 
 
@@ -251,6 +287,7 @@ function render() {
         	camcontrols.movementSpeed = 20;
         	camcontrols.noFly = true;
         	camcontrols.lookVertical = false;
+			camcontrols.togglecontrols(true);
 
 			$(document).mouseleave(function () {
     			camcontrols.mousein = false;
