@@ -49,7 +49,7 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 	this.viewHalfX = 0;
 	this.viewHalfY = 0;
-	this.mousein = false;
+	this.mousein = true;
 
 	if ( this.domElement !== document ) {
 
@@ -90,8 +90,8 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 			switch ( event.button ) {
 
-				case 0: this.moveForward = true; break;
-				case 2: this.moveBackward = true; break;
+				case 0: this.moveForward = true; p1.setstate.moving = true; break;
+				case 2: this.moveBackward = true; p1.setstate.moving = true; break;
 
 			}
 
@@ -110,8 +110,8 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 			switch ( event.button ) {
 
-				case 0: this.moveForward = false; break;
-				case 2: this.moveBackward = false; break;
+				case 0: this.moveForward = false; p1.setstate.moving = false; break;
+				case 2: this.moveBackward = false; p1.setstate.moving = false; break;
 
 			}
 
@@ -160,6 +160,8 @@ THREE.FirstPersonControls = function ( object, domElement ) {
 
 			case 82: /*R*/ this.moveUp = true; p1.setstate.moving = true; break;
 			case 70: /*F*/ this.moveDown = true; p1.setstate.moving = true; break;
+			
+			case 69: /*action*/ actions.check(); break;
 
 		}
 

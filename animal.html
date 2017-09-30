@@ -11,6 +11,7 @@
 	<script src="./three2.js"></script>
 	<script src="./FirstPersonControls.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+	<script src="./jscolor.min.js"></script>
 
 	<style type="text/css">
 			body {
@@ -32,11 +33,40 @@
 	</style>
 </head>
 <body>
+<script type="text/javascript">
+var playernick;
+var playercolor;
+
+function loadjsfile(filename){
+    var fileref=document.createElement('script');
+    fileref.setAttribute("type","text/javascript");
+    fileref.setAttribute("src", filename);
+    if (typeof fileref!="undefined"){
+        document.getElementsByTagName("body")[0].appendChild(fileref);
+	}
+}
+
+function formOnSubmit(theForm) {
+	playernick = theForm.elements["nick"].value;
+	playercolor = "0x"+theForm.elements["color"].value;
+	console.log(playercolor);
+	loadjsfile("./animal-init.js");
+	loadjsfile("./animal.js");
+	return false;
+}
+</script>
 <div id="overlaytext" style="position: absolute; top: 20px; left: 20px">
-<div id="loading" class ="info">Page requires Google Chrome and webgl</div>
+<div id="loading" class ="info">Page requires Google Chrome and webgl<br>
+<form action="#" onsubmit="return formOnSubmit(this);">
+<br>Cow name:<br>
+<input type="text" name="nick"><br>
+Cow color:<br>
+<input class="jscolor" name="color"><br>
+<input type="submit" value="Join">
+</form>
 </div>
-    <script src="./animal-init.js"></script>
-	<script src="./animal.js"></script>
+</div>
+
 
 
 

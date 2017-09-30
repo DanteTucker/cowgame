@@ -1,7 +1,7 @@
 class objectmanager{
 	constructor(){
 		this.objects = [];
-		this.cast = ["animal6.json","world.js"];
+		this.cast = ["animal6.json","world2.js"];
 		this.loaded = 0;
 	}
 	loadobjects(){
@@ -52,7 +52,7 @@ class playermanager{
 		this.players = [];
 	}
 	create(data){
-		this.players.push(new player(data.id));
+		this.players.push(new player(data.id,data.color));
 		this.players[this.players.length - 1].create({x: 0,y: 0,z: 0},false);
 	}
 	destroy(data){
@@ -86,21 +86,69 @@ class playermanager{
 	}
 }
 
+class chatManager{
+	constructor(){
+		this.chat = [];
+	}
+	addChat(msg){
+		this.chat.push(msg);
+		if(this.chat.length > 5){
+			this.chat = this.chat.slice(1,6);
+		}
+		this.refreshChat();
+	}
+	refreshChat(){
+		var output = "";
+		for(var i = 0; i < this.chat.length; i++){
+			output += this.chat[i];
+			output += "<br>";
+		}
+		$('#loading').html(output);
+	}
+}
+
+
+class actionManager{
+	constructor(){
+
+	}
+	doAction(obj){
+		if(obj.object.userData['player']){
+			socket.emit('chat',{chat:p1.id + ' pokes ' + obj.id});
+			chatsystem.addChat(p1.id + ' pokes ' + obj.id);
+		}
+	}
+	check(){
+		manager.players.forEach(function(element){
+			var pbbox = new THREE.Box3();
+			pbbox.setFromObject(p1.actionbox);
+			var objbbox = new THREE.Box3();
+			objbbox.setFromObject(element.object);
+			if(objbbox.intersectsBox(pbbox)){
+				actions.doAction(element);
+			}
+		});
+	}
+}
 
 class player{
-	constructor(id){
+	constructor(id,pcolor){
 		this.id = id;
-		this.position = {x: 0, y: 0, z: 0};
 		this.object;
 		this.local;
 		this.animmixer;
 		this.walk;
 		this.setstate = {moving: false};
 		this.namesprite;
+		this.color = pcolor;
+		this.actionbox;
 	}
 	create(pos,local){
 		this.local = local;
 		this.object = objman.getmodel({name:"animal6.json"});
+		this.object.material = new THREE.MeshPhongMaterial({color: new THREE.Color(parseInt(this.color,16))});
+		this.object.material.skinning = true;
+		this.object.userData["player"] = true;
 		this.animmixer = new THREE.AnimationMixer(this.object);
 		this.walk = this.animmixer.clipAction(this.object.geometry.animations[0]);
 		scene.add(this.object);
@@ -109,6 +157,16 @@ class player{
 		this.namesprite.position.set(0,10,-3);
 		this.object.add(this.namesprite);
 		this.walk.play();
+
+		if(local){
+			var geometry = new THREE.BoxGeometry( 4, 8, 4 );
+			var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
+			this.actionbox = new THREE.Mesh(geometry,material);
+			this.actionbox.position.set(0,4,-8);
+			this.actionbox.visible = false;
+			scene.add(this.actionbox);
+			this.object.add(this.actionbox);
+		}
 		
 	}
 	destroy(){
@@ -144,7 +202,13 @@ var delta;
 
 var manager = new playermanager();
 
-$('#loading').text("Server offline");
+var actions = new actionManager();
+
+var chatsystem = new chatManager();
+
+chatsystem.addChat("Connecting to server");
+
+
 
 //socket.on('join',function(msg){
 //	manager.create(msg);
@@ -156,9 +220,11 @@ socket.on('remove',function(msg){
 	manager.destroy(msg);
 });
 socket.on('online',function(msg){
-	$('#loading').text("Connected");
+	chatsystem.addChat("Connected");
 });
-	
+socket.on('chat',function(msg){
+	chatsystem.addChat(msg.chat);
+});
 function render() {
      renderer.render(scene, camera);
 
@@ -167,10 +233,10 @@ function render() {
 	if(loaded){
 			
 		if(!rezzed){
-			if(getParam('nick')){
-				p1 = new player(getParam('nick'));
+			if(playernick !== ""){
+				p1 = new player(playernick,playercolor);
 			} else {
-				p1 = new player(new Date().valueOf());
+				p1 = new player(new Date().valueOf(),playercolor);
 			}
 			p1.create({x: 0,y: 0,z: 0},true);
 			console.log(p1.object);
@@ -193,10 +259,11 @@ function render() {
 				console.log('in');
 			});
 
-			tempworld = objman.getmodel({name:"world.js"});
+			tempworld = objman.getmodel({name:"world2.js"});
 			scene.add(tempworld);
 			rezzed = true;
-			socket.emit('join',{id: p1.id});
+			socket.emit('join',{id: p1.id,color:p1.color});
+			
 			
 		}
 		if(camcontrols){
@@ -204,7 +271,16 @@ function render() {
 			p1.animset();
 			p1.animmixer.update(delta);
 			manager.animupdate();
-			socket.emit('move',{pos: p1.object.position, rot: p1.object.rotation, id: p1.id, state: p1.setstate});
+			socket.emit('move',{pos: p1.object.position, rot: p1.object.rotation, id: p1.id, state: p1.setstate,color: p1.color});
+			/*scene.children[2].children.forEach(function(element){
+				var pbbox = new THREE.Box3();
+				pbbox.setFromObject(p1.object);
+				var objbbox = new THREE.Box3();
+				objbbox.setFromObject(element);
+				if(objbbox.intersectsBox(pbbox)&&element.userData["collidable"]){
+					console.log('hit');
+				}
+			});*/
 		}	
 		
 	}
