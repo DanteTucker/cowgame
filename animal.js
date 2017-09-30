@@ -157,6 +157,7 @@ class player{
 		this.namesprite.position.set(0,10,-3);
 		this.object.add(this.namesprite);
 		this.walk.play();
+		chatsystem.addChat(this.id+" joined");
 
 		if(local){
 			var geometry = new THREE.BoxGeometry( 4, 8, 4 );
@@ -170,6 +171,7 @@ class player{
 		
 	}
 	destroy(){
+		chatsystem.addChat(this.id+" left");
 		scene.remove(this.object);
 	}
 	move(data){
