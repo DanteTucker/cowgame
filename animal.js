@@ -1,7 +1,7 @@
 class objectmanager{
 	constructor(){
 		this.objects = [];
-		this.cast = ["animal6.json","world2.js"];
+		this.cast = ["models/animal6.json","models/world2.js"];
 		this.loaded = 0;
 	}
 	loadobjects(){
@@ -145,7 +145,7 @@ class player{
 	}
 	create(pos,local){
 		this.local = local;
-		this.object = objman.getmodel({name:"animal6.json"});
+		this.object = objman.getmodel({name:"models/animal6.json"});
 		this.object.material = new THREE.MeshPhongMaterial({color: new THREE.Color(parseInt(this.color,16))});
 		this.object.material.skinning = true;
 		this.object.userData["player"] = true;
@@ -261,7 +261,7 @@ function render() {
 				console.log('in');
 			});
 
-			tempworld = objman.getmodel({name:"world2.js"});
+			tempworld = objman.getmodel({name:"models/world2.js"});
 			scene.add(tempworld);
 			rezzed = true;
 			socket.emit('join',{id: p1.id,color:p1.color});
