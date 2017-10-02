@@ -194,6 +194,7 @@ class player{
 		this.object.add(this.namesprite);
 		this.walk.play();
 		chatsystem.addChat(this.id+" joined");
+		
 
 		if(local){
 			var geometry = new THREE.BoxGeometry( 4, 8, 4 );
@@ -203,6 +204,7 @@ class player{
 			this.actionbox.visible = false;
 			scene.add(this.actionbox);
 			this.object.add(this.actionbox);
+			
 		}
 		
 	}
@@ -229,6 +231,7 @@ class player{
 var p1;
 var rezzed = false;
 var lookloc;
+var resolve;
 var objman = new objectmanager();
 var camcontrols = false;
 objman.loadobjects();
@@ -311,15 +314,25 @@ function render() {
 			p1.animmixer.update(delta);
 			manager.animupdate();
 			socket.emit('move',{pos: p1.object.position, rot: p1.object.rotation, id: p1.id, state: p1.setstate,color: p1.color});
-			/*scene.children[2].children.forEach(function(element){
-				var pbbox = new THREE.Box3();
-				pbbox.setFromObject(p1.object);
-				var objbbox = new THREE.Box3();
-				objbbox.setFromObject(element);
-				if(objbbox.intersectsBox(pbbox)&&element.userData["collidable"]){
-					console.log('hit');
-				}
-			});*/
+			resolve = true;
+			while(resolve){
+				resolve = false;
+				scene.children[2].children.forEach(function(element){
+					var pbbox = new THREE.Box3();
+					pbbox.setFromCenterAndSize(new THREE.Vector3(p1.object.position.x,p1.object.position.y+4,p1.object.position.z), new THREE.Vector3(5,5,0));
+					var objbbox = new THREE.Box3();
+					objbbox.setFromObject(element);
+					while(objbbox.intersectsBox(pbbox)/*&&element.userData["collidable"]*/){
+						resolve = true;
+						var direction = new THREE.Vector3();
+						pbbox.setFromCenterAndSize(new THREE.Vector3(p1.object.position.x,p1.object.position.y+4,p1.object.position.z), new THREE.Vector3(5,5,0));
+						direction.subVectors(pbbox.getCenter(),objbbox.getCenter()).normalize();
+						p1.object.position.set(p1.object.position.x + (direction.x*0.01),p1.object.position.y,p1.object.position.z + (direction.z*0.01));
+				
+					
+					}
+				});
+			}
 		}	
 		
 	}
